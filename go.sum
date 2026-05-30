@@ -1,0 +1,4 @@
+github.com/agnostic-t/neutrino-lproxies v0.0.0-20260527151951-66dce49712c8 h1:x1LkIWamnCOkEhEsi0U6UopV4Iffb5I2oyXDkfgx7Vs=
+github.com/agnostic-t/neutrino-lproxies v0.0.0-20260527151951-66dce49712c8/go.mod h1:k3pNvAyUd4OlxxK7KuMMyxvVsOiIp2KXa/2krAUOctY=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7 h1:ybKgu0gCAvgYWPr2Y82SFRjMpzXdRXUHURlQkLJsbe4=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
