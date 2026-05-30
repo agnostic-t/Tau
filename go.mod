@@ -8,7 +8,3 @@ require (
 	github.com/agnostic-t/neutrino-obfs v0.0.0-20260527163634-6db777a5ae47
 	github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7
 )
-
-replace github.com/agnostic-t/neutrino-core => ../neutrino-core
-
-replace github.com/agnostic-t/neutrino-obfs => ../neutrino-obfs
