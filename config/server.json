@@ -1,0 +1,18 @@
+{
+  "bindIP": "0.0.0.0",
+  "inbounds": {
+    "i-123": {
+      "port": 9001,
+      "obfs": "xobfs",
+      "trans": "tcp",
+      "psk": "123123321321"
+    }
+  },
+  "clients": {
+    "v-123": {
+      "inbound": "i-123",
+      "traffic": "unlimited",
+      "locked": true
+    }
+  }
+}

@@ -5,46 +5,74 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strconv"
+	"sync"
 	"syscall"
-	"time"
 
 	"github.com/agnostic-t/neutrino-core/core/server"
-	"github.com/agnostic-t/neutrino-core/local"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
-	"github.com/agnostic-t/neutrino-lproxies/socks5"
+
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
-
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
+
+	"github.com/agnostic-t/neutrino-vpn/internal/config"
 )
-
-func InitLocalProxy(addr string) local.Proxy {
-	return socks5.NewProxy(addr)
-}
-
-func InitTCPClient(vpnServerAddr string) transport.Client {
-	return tcp.NewClient(vpnServerAddr, time.Second*5)
-}
-
-func InitObfs(psk []byte) obfuscation.Obfuscator {
-	return &xobfs.Obfuscator{
-		Psk: psk,
-	}
-}
-
-func InitTCPTransport(bindAddr string) transport.Server {
-	return tcp.NewServer(bindAddr)
-}
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	trans := InitTCPTransport("0.0.0.0:9001")
-	obfs := InitObfs([]byte("IkupwyNCJrl<pRSRYrtULW&QA%TXE<"))
+	config, err := config.LoadServerConfig("./config/server.json")
+	if err != nil {
+		logger.Error("Failed to parse config", "error", err)
+		os.Exit(-1)
+	}
+
+	if err := config.Validate(); err != nil {
+		logger.Error("Invalid config", "error", err)
+		os.Exit(-1)
+	}
+
+	var wg sync.WaitGroup
+	for name, inb := range config.Inbounds {
+		logger.Info("Processing inbound", "name", name)
+		var obfs obfuscation.Obfuscator
+		var trans transport.Server
+
+		switch inb.Obfs {
+		case "xobfs":
+			obfs = &xobfs.Obfuscator{Psk: []byte(inb.Psk)}
+		default:
+			logger.Error("Invalid obfuscation method", "inb", name, "name", inb.Obfs)
+			os.Exit(-1)
+		}
+
+		switch inb.Trans {
+		case "tcp":
+			trans = tcp.NewServer(config.BindIP + ":" + strconv.Itoa(inb.Port))
+		default:
+			logger.Error("Invalid transport method", "inb", name, "name", inb.Trans)
+		}
+
+		go startServer(
+			config.BindIP+":"+strconv.Itoa(inb.Port),
+			trans,
+			obfs,
+			logger,
+			&wg,
+		)
+		wg.Add(1)
+	}
+
+	wg.Wait()
+}
+
+func startServer(addr string, trans transport.Server, obfs obfuscation.Obfuscator, logger *slog.Logger, wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	server := server.NewServer(trans, obfs, logger)
 
-	logger.Info("Server is starting at 0.0.0.0:9001")
+	logger.Info("Server is starting", "addr", addr)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

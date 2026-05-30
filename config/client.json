@@ -1,0 +1,15 @@
+{
+  "lproxy": {
+    "socks5": "127.0.0.1:9002"
+  },
+  "selected": "123",
+  "servers": {
+    "123": {
+      "addr": "127.0.0.1:9001",
+      "obfs": "xobfs",
+      "psk": "123123321321",
+      "traffic": "unlimited",
+      "locked": true
+    }
+  }
+}

@@ -13,7 +13,50 @@ It has:
 
 ## Usage
 
-It is very simple. Firstly you start server:
+Firstly, you have to write a config files for both server:
+
+```json
+{
+  "bindIP": "0.0.0.0",
+  "inbounds": {
+    "i-123": {
+      "port": 9001,
+      "obfs": "xobfs",
+      "trans": "tcp",
+      "psk": "123123321321"
+    }
+  },
+  "clients": {
+    "v-123": {
+      "inbound": "i-123",
+      "traffic": "unlimited",
+      "locked": true
+    }
+  }
+}
+```
+
+and client:
+
+```json
+{
+  "lproxy": {
+    "socks5": "127.0.0.1:9002"
+  },
+  "selected": "123",
+  "servers": {
+    "123": {
+      "addr": "127.0.0.1:9001",
+      "obfs": "xobfs",
+      "psk": "123123321321",
+      "traffic": "unlimited",
+      "locked": true
+    }
+  }
+}
+```
+
+Than you can start server:
 
 ```sh
 go run ./server
