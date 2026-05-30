@@ -5,7 +5,7 @@
       "port": 9001,
       "obfs": "xobfs",
       "trans": "tcp",
-      "psk": "123123321321"
+      "psk": "123123"
     }
   },
   "clients": {

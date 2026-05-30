@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -42,6 +43,8 @@ func main() {
 		switch inb.Obfs {
 		case "xobfs":
 			obfs = &xobfs.Obfuscator{Psk: []byte(inb.Psk)}
+		case "null":
+			obfs = &NullObfuscator{}
 		default:
 			logger.Error("Invalid obfuscation method", "inb", name, "name", inb.Obfs)
 			os.Exit(-1)
@@ -80,4 +83,15 @@ func startServer(addr string, trans transport.Server, obfs obfuscation.Obfuscato
 	if err := server.Start(ctx); err != nil {
 		logger.Error("Failed to start server", "error", err)
 	}
+}
+
+type NullObfuscator struct {
+}
+
+func (o *NullObfuscator) WrapConnTo(conn net.Conn) (net.Conn, error) {
+	return conn, nil
+}
+
+func (o *NullObfuscator) WrapConnFrom(conn net.Conn) (net.Conn, error) {
+	return conn, nil
 }

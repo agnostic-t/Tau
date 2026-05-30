@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"sync"
@@ -55,7 +56,18 @@ func main() {
 
 	server := config.Servers[config.Selected]
 	trans := tcp.NewClient(server.Address, 5*time.Second)
-	obfs := &xobfs.Obfuscator{Psk: []byte(server.Psk)}
+
+	var obfs obfuscation.Obfuscator
+
+	switch server.Obfs {
+	case "xobfs":
+		obfs = &xobfs.Obfuscator{Psk: []byte(server.Psk)}
+	case "null":
+		obfs = &NullObfuscator{}
+	default:
+		logger.Error("Invalid obfuscation algorithm", "type", server.Obfs)
+		os.Exit(-1)
+	}
 
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
@@ -84,4 +96,15 @@ func startClient(
 	}
 
 	wg.Done()
+}
+
+type NullObfuscator struct {
+}
+
+func (o *NullObfuscator) WrapConnTo(conn net.Conn) (net.Conn, error) {
+	return conn, nil
+}
+
+func (o *NullObfuscator) WrapConnFrom(conn net.Conn) (net.Conn, error) {
+	return conn, nil
 }
