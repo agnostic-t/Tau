@@ -1,7 +1,5 @@
-github.com/agnostic-t/neutrino-core v0.0.0-20260530195043-392460dec975 h1:8wpP2rwg1h+5YHB3o0NxJGjJrMpWdx6eK2QxTmeF/mE=
-github.com/agnostic-t/neutrino-core v0.0.0-20260530195043-392460dec975/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
-github.com/agnostic-t/neutrino-core v0.0.0-20260530203037-567942c3379f h1:5rusEZFYyjk6tncqup12eTMWWDeMDLoMOsxpptdfyaE=
-github.com/agnostic-t/neutrino-core v0.0.0-20260530203037-567942c3379f/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
+github.com/agnostic-t/neutrino-core v0.0.0-20260530211805-ff244b31a2bf h1:BJ8TEqVHavYJn3sQMYvZHp85Z0qa/8978mgxwdAIJSk=
+github.com/agnostic-t/neutrino-core v0.0.0-20260530211805-ff244b31a2bf/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260530201113-db9a70aea3b7 h1:mW1uCyoWB4d0kmtLu2JCBFArocMKCoUsbIYRoRIH5Gw=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260530201113-db9a70aea3b7/go.mod h1:ttzHhB+i1j6ZUyQ6AIFhYO5Of1uIYXwHJ8YU34hWDgc=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260527151951-66dce49712c8 h1:x1LkIWamnCOkEhEsi0U6UopV4Iffb5I2oyXDkfgx7Vs=

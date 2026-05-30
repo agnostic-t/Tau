@@ -8,25 +8,19 @@
       "addr": "127.0.0.1:9003",
       "handshake": "plain",
       "obfs": "null",
-      "psk": "",
-      "traffic": "unlimited",
-      "locked": true
+      "psk": ""
     },
     "123": {
       "addr": "127.0.0.1:3001",
       "handshake": "plain",
       "obfs": "xobfs",
-      "psk": "123123",
-      "traffic": "unlimited",
-      "locked": true
+      "psk": "123123"
     },
     "123-null": {
       "addr": "127.0.0.1:3002",
       "handshake": "plain",
       "obfs": "null",
-      "psk": "",
-      "traffic": "unlimited",
-      "locked": true
+      "psk": ""
     }
   }
 }
