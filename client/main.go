@@ -10,10 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	b64 "encoding/base64"
+	"encoding/json"
+
 	"github.com/agnostic-t/neutrino-core/core/client"
+	"github.com/agnostic-t/neutrino-core/handshake"
 	"github.com/agnostic-t/neutrino-core/local"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
+	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	"github.com/agnostic-t/neutrino-vpn/internal/config"
 
@@ -21,13 +26,34 @@ import (
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 )
 
+func convertB64ToInbound(inb string) (config.ClientsServer, error) {
+	jsonBytes, err := b64.StdEncoding.DecodeString(inb)
+	if err != nil {
+		return config.ClientsServer{}, err
+	}
+
+	var config config.ClientsServer
+	if err := json.Unmarshal(jsonBytes, &config); err != nil {
+		return config, err
+	}
+
+	return config, nil
+}
+
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	if len(os.Args) == 1 {
+		logger.Error("Failed to get config path, use program as: " + os.Args[0] + " PATH_TO_CONFIG")
+		os.Exit(-1)
+	}
+
+	pathConfig := os.Args[1]
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	config, err := config.LoadClientConfig("./config/client.json")
+	config, err := config.LoadClientConfig(pathConfig)
 	if err != nil {
 		logger.Error("Failed to load config", "error", err)
 		os.Exit(-1)
@@ -69,9 +95,18 @@ func main() {
 		os.Exit(-1)
 	}
 
+	var handshake handshake.HandshakeHandler
+	switch server.Handsh {
+	case "plain":
+		handshake = &basic.BasicHandshaker{}
+	default:
+		logger.Error("Invalid handshake algorithm", "type", server.Handsh)
+		os.Exit(-1)
+	}
+
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
-		go startClient(addr, prx, trans, obfs, logger, ctx, &wg)
+		go startClient(addr, prx, handshake, trans, obfs, logger, ctx, &wg)
 		wg.Add(1)
 	}
 
@@ -81,13 +116,14 @@ func main() {
 func startClient(
 	laddr string,
 	lproxy local.Proxy,
+	handsh handshake.HandshakeHandler,
 	trans transport.Client,
 	obfs obfuscation.Obfuscator,
 	logger *slog.Logger,
 	ctx context.Context,
 	wg *sync.WaitGroup,
 ) {
-	client := client.NewClient(lproxy, trans, obfs, logger)
+	client := client.NewClient(lproxy, trans, obfs, handsh, logger)
 
 	logger.Info("Starting Neutrino Client", "laddr", laddr)
 

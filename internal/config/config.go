@@ -6,18 +6,22 @@ import (
 )
 
 type ServerConfig struct {
-	Inbounds    map[string]ServerInbound `json:"inbounds"`
-	Clients     map[string]ServersClient `json:"clients"`
-	BindIP      string                   `json:"bindIP"`
-	LockedIPs   map[string]string        `json:"lockedIPs,omitempty"`
-	UsedTraffic map[string]int           `json:"usedTraffic,omitempty"`
+	BindIP     string `json:"bindIP"`
+	ExternalIP string `json:"externalIP"`
+
+	Inbounds map[string]ServerInbound `json:"inbounds"`
+	Clients  map[string]ServersClient `json:"clients"`
+
+	LockedIPs   map[string]string `json:"lockedIPs,omitempty"`
+	UsedTraffic map[string]int    `json:"usedTraffic,omitempty"`
 }
 
 type ServerInbound struct {
-	Psk   string `json:"psk"`
-	Port  int    `json:"port"`
-	Obfs  string `json:"obfs"`
-	Trans string `json:"trans"`
+	Psk    string `json:"psk"`
+	Port   int    `json:"port"`
+	Obfs   string `json:"obfs"`
+	Trans  string `json:"trans"`
+	Handsh string `json:"handshake"`
 }
 
 type ServersClient struct {
@@ -38,6 +42,7 @@ type ClientsServer struct {
 	Psk     string `json:"psk"`
 	Traffic string `json:"traffic"`
 	Locked  bool   `json:"locked"`
+	Handsh  string `json:"handshake"`
 }
 
 func (c *ClientConfig) Validate() error {

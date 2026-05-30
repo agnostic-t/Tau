@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net"
 	"os"
@@ -10,20 +11,49 @@ import (
 	"sync"
 	"syscall"
 
+	b64 "encoding/base64"
+
 	"github.com/agnostic-t/neutrino-core/core/server"
+	"github.com/agnostic-t/neutrino-core/handshake"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
 
+	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 
 	"github.com/agnostic-t/neutrino-vpn/internal/config"
 )
 
+func exportInboundAsB64(externalIP string, inb config.ServerInbound) (string, error) {
+	inbClient := config.ClientsServer{
+		Address: externalIP + ":" + strconv.Itoa(inb.Port),
+		Obfs:    inb.Obfs,
+		Psk:     inb.Psk,
+		Traffic: inb.Trans,
+		Locked:  false,
+		Handsh:  inb.Handsh,
+	}
+
+	jsonBytes, err := json.Marshal(&inbClient)
+	if err != nil {
+		return "", err
+	}
+
+	return b64.StdEncoding.EncodeToString(jsonBytes), nil
+}
+
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	config, err := config.LoadServerConfig("./config/server.json")
+	if len(os.Args) == 1 {
+		logger.Error("Failed to get config path, use program as: " + os.Args[0] + " PATH_TO_CONFIG")
+		os.Exit(-1)
+	}
+
+	pathConfig := os.Args[1]
+
+	config, err := config.LoadServerConfig(pathConfig)
 	if err != nil {
 		logger.Error("Failed to parse config", "error", err)
 		os.Exit(-1)
@@ -37,8 +67,18 @@ func main() {
 	var wg sync.WaitGroup
 	for name, inb := range config.Inbounds {
 		logger.Info("Processing inbound", "name", name)
+
+		b64_str, err := exportInboundAsB64(config.ExternalIP, inb)
+		if err != nil {
+			logger.Error("Failed to get B64 string for inbound", "inb", inb)
+			os.Exit(-1)
+		}
+
+		logger.Info("For this inbound B64: ", "b64", "tau://"+b64_str)
+
 		var obfs obfuscation.Obfuscator
 		var trans transport.Server
+		var handsh handshake.HandshakeHandler
 
 		switch inb.Obfs {
 		case "xobfs":
@@ -55,10 +95,20 @@ func main() {
 			trans = tcp.NewServer(config.BindIP + ":" + strconv.Itoa(inb.Port))
 		default:
 			logger.Error("Invalid transport method", "inb", name, "name", inb.Trans)
+			os.Exit(-1)
+		}
+
+		switch inb.Handsh {
+		case "plain":
+			handsh = &basic.BasicHandshaker{}
+		default:
+			logger.Error("Invalid handshake method", "inb", name, "name", inb.Handsh)
+			os.Exit(-1)
 		}
 
 		go startServer(
 			config.BindIP+":"+strconv.Itoa(inb.Port),
+			handsh,
 			trans,
 			obfs,
 			logger,
@@ -70,10 +120,10 @@ func main() {
 	wg.Wait()
 }
 
-func startServer(addr string, trans transport.Server, obfs obfuscation.Obfuscator, logger *slog.Logger, wg *sync.WaitGroup) {
+func startServer(addr string, handsh handshake.HandshakeHandler, trans transport.Server, obfs obfuscation.Obfuscator, logger *slog.Logger, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	server := server.NewServer(trans, obfs, logger)
+	server := server.NewServer(trans, obfs, handsh, logger)
 
 	logger.Info("Server is starting", "addr", addr)
 
