@@ -1,63 +1,102 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
 
+// ModuleConfig представляет конфигурацию модуля (obfs, handshake, trans).
+// Поддерживает два формата JSON: строку ("type") или объект {"type": "...", "settings": {...}}
+type ModuleConfig struct {
+	Type     string         `json:"type"`
+	Settings map[string]any `json:"settings,omitempty"`
+}
+
+// UnmarshalJSON кастомно парсит JSON, обеспечивая обратную совместимость
+func (m *ModuleConfig) UnmarshalJSON(data []byte) error {
+	// 1. Пробуем распарсить как объект
+	var obj struct {
+		Type     string         `json:"type"`
+		Settings map[string]any `json:"settings,omitempty"`
+	}
+	if err := json.Unmarshal(data, &obj); err == nil && obj.Type != "" {
+		m.Type = obj.Type
+		m.Settings = obj.Settings
+		return nil
+	}
+
+	// 2. Фоллбек на простую строку (legacy)
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		m.Type = str
+		return nil
+	}
+
+	return fmt.Errorf("invalid module config: expected string or object with 'type' field")
+}
+
+// GetSetting безопасный доступ к произвольному параметру
+func (m *ModuleConfig) GetSetting(key string) (any, bool) {
+	if m.Settings == nil {
+		return nil, false
+	}
+	val, ok := m.Settings[key]
+	return val, ok
+}
+
+// DecodeSettings декодирует settings в конкретную структуру для типизированной работы
+func (m *ModuleConfig) DecodeSettings(v any) error {
+	if m.Settings == nil {
+		return nil
+	}
+	data, err := json.Marshal(m.Settings)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, v)
+}
+
 type ServerConfig struct {
-	BindIP     string `json:"bindIP"`
-	ExternalIP string `json:"externalIP"`
-
-	Inbounds map[string]ServerInbound `json:"inbounds"`
-	Clients  map[string]ServersClient `json:"clients"`
-
-	LockedIPs   map[string]string `json:"lockedIPs,omitempty"`
-	UsedTraffic map[string]int    `json:"usedTraffic,omitempty"`
+	BindIP      string                   `json:"bindIP"`
+	ExternalIP  string                   `json:"externalIP"`
+	Inbounds    map[string]ServerInbound `json:"inbounds"`
+	LockedIPs   map[string]string        `json:"lockedIPs,omitempty"`
+	UsedTraffic map[string]int           `json:"usedTraffic,omitempty"`
 }
 
 type ServerInbound struct {
-	Psk    string `json:"psk"`
-	Port   int    `json:"port"`
-	Obfs   string `json:"obfs"`
-	Trans  string `json:"trans"`
-	Handsh string `json:"handshake"`
-}
-
-type ServersClient struct {
-	Traffic string `json:"traffic"`
-	Locked  bool   `json:"locked"`
-	Inbound string `json:"inbound"`
+	Port      int          `json:"port"`
+	Obfs      ModuleConfig `json:"obfs"`
+	Handshake ModuleConfig `json:"handshake"`
+	Trans     ModuleConfig `json:"trans"`
 }
 
 type ClientConfig struct {
-	Lproxy   map[string]string        `json:"lproxy"`
+	LProxy   map[string]string        `json:"lproxy"`
 	Selected string                   `json:"selected"`
 	Servers  map[string]ClientsServer `json:"servers"`
 }
 
 type ClientsServer struct {
-	Address string `json:"addr"`
-	Obfs    string `json:"obfs"`
-	Psk     string `json:"psk"`
-	Traffic string `json:"traffic"`
-	Locked  bool   `json:"locked"`
-	Handsh  string `json:"handshake"`
+	Address   string       `json:"addr"`
+	Obfs      ModuleConfig `json:"obfs"`
+	Handshake ModuleConfig `json:"handshake"`
+	Trans     ModuleConfig `json:"trans"`
+	Traffic   string       `json:"traffic,omitempty"`
+	Locked    bool         `json:"locked,omitempty"`
 }
 
 func (c *ClientConfig) Validate() error {
 	if c.Selected == "" {
-		return errors.New("No server selected")
+		return errors.New("no server selected")
 	}
-
 	if len(c.Servers) == 0 {
-		return errors.New("No servers added")
+		return errors.New("no servers added")
 	}
-
 	if _, ok := c.Servers[c.Selected]; !ok {
-		return errors.New("Selected server is not presented in config")
+		return errors.New("selected server is not present in config")
 	}
-
 	return nil
 }
 
@@ -68,11 +107,6 @@ func (c *ServerConfig) Validate() error {
 	for id, inbound := range c.Inbounds {
 		if inbound.Port <= 0 || inbound.Port > 65535 {
 			return fmt.Errorf("inbound %s: invalid port %d", id, inbound.Port)
-		}
-	}
-	for id, client := range c.Clients {
-		if _, ok := c.Inbounds[client.Inbound]; !ok {
-			return fmt.Errorf("client %s: unknown inbound %s", id, client.Inbound)
 		}
 	}
 	return nil

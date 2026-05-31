@@ -4,18 +4,38 @@
   "inbounds": {
     "i-123": {
       "port": 9001,
-      "obfs": "xobfs",
-      "trans": "tcp",
-      "handshake": "plain",
-      "psk": "123123"
+      "obfs": {
+        "type": "xobfs",
+        "settings": {
+          "psk": "8459548881"
+        }
+      },
+      "handshake": {
+        "type": "xobfs",
+        "settings": {
+          "psk": "1237572394",
+          "startJunk": true,
+          "rotateSeconds": 60,
+          "rotateJunkCount": true,
+          "minJunkPacks": 0,
+          "maxJunkPacks": 5
+        }
+      },
+      "trans": {
+        "type": "tcp"
+      }
     },
     "n-123": {
       "port": 9003,
-      "obfs": "null",
-      "trans": "tcp",
-      "handshake": "plain",
-      "psk": ""
+      "obfs": {
+        "type": "null"
+      },
+      "trans": {
+        "type": "tcp"
+      },
+      "handshake": {
+        "type": "plain"
+      }
     }
-  },
-  "clients": {}
+  }
 }

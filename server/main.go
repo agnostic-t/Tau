@@ -2,16 +2,12 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"strconv"
 	"sync"
 	"syscall"
-
-	b64 "encoding/base64"
 
 	"github.com/agnostic-t/neutrino-core/core/server"
 	"github.com/agnostic-t/neutrino-core/handshake"
@@ -19,29 +15,24 @@ import (
 	"github.com/agnostic-t/neutrino-core/transport"
 
 	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
+	"github.com/agnostic-t/neutrino-handsh/handshake/obfsh"
+	"github.com/agnostic-t/neutrino-obfs/nobfs"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 
-	"github.com/agnostic-t/neutrino-vpn/internal/config"
+	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
 )
 
-func exportInboundAsB64(externalIP string, inb config.ServerInbound) (string, error) {
-	inbClient := config.ClientsServer{
-		Address: externalIP + ":" + strconv.Itoa(inb.Port),
-		Obfs:    inb.Obfs,
-		Psk:     inb.Psk,
-		Traffic: inb.Trans,
-		Locked:  false,
-		Handsh:  inb.Handsh,
-	}
+// func exportInboundAsB64(externalIP string, inb iconf.ServerInbound) (string, error) {
 
-	jsonBytes, err := json.Marshal(&inbClient)
-	if err != nil {
-		return "", err
-	}
+// 	jsonBytes, err := json.Marshal(&inbClient)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return b64.StdEncoding.EncodeToString(jsonBytes), nil
-}
+// 	return b64.StdEncoding.EncodeToString(jsonBytes), nil
+// 	return "", nil
+// }
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -53,7 +44,7 @@ func main() {
 
 	pathConfig := os.Args[1]
 
-	config, err := config.LoadServerConfig(pathConfig)
+	config, err := iconf.LoadServerConfig(pathConfig)
 	if err != nil {
 		logger.Error("Failed to parse config", "error", err)
 		os.Exit(-1)
@@ -68,29 +59,35 @@ func main() {
 	for name, inb := range config.Inbounds {
 		logger.Info("Processing inbound", "name", name)
 
-		b64_str, err := exportInboundAsB64(config.ExternalIP, inb)
-		if err != nil {
-			logger.Error("Failed to get B64 string for inbound", "inb", inb)
-			os.Exit(-1)
-		}
+		// b64_str, err := exportInboundAsB64(config.ExternalIP, inb)
+		// if err != nil {
+		// 	logger.Error("Failed to get B64 string for inbound", "inb", inb)
+		// 	os.Exit(-1)
+		// }
 
-		logger.Info("For this inbound B64: ", "b64", "tau://"+b64_str)
+		// logger.Info("For this inbound B64: ", "b64", "tau://"+b64_str)
 
 		var obfs obfuscation.Obfuscator
 		var trans transport.Server
 		var handsh handshake.HandshakeHandler
 
-		switch inb.Obfs {
+		switch inb.Obfs.Type {
 		case "xobfs":
-			obfs = &xobfs.Obfuscator{Psk: []byte(inb.Psk)}
+			var opts iconf.ObfsTypeXOBFS
+			if err := inb.Obfs.DecodeSettings(&opts); err != nil {
+				logger.Error("Failed to get opts for obfs", "inb", name, "name", inb.Obfs.Type, "error", err)
+				os.Exit(-1)
+			}
+
+			obfs = &xobfs.Obfuscator{Psk: []byte(opts.Psk)}
 		case "null":
-			obfs = &NullObfuscator{}
+			obfs = &nobfs.NullObfuscator{}
 		default:
 			logger.Error("Invalid obfuscation method", "inb", name, "name", inb.Obfs)
 			os.Exit(-1)
 		}
 
-		switch inb.Trans {
+		switch inb.Trans.Type {
 		case "tcp":
 			trans = tcp.NewServer(config.BindIP + ":" + strconv.Itoa(inb.Port))
 		default:
@@ -98,11 +95,27 @@ func main() {
 			os.Exit(-1)
 		}
 
-		switch inb.Handsh {
+		switch inb.Handshake.Type {
 		case "plain":
 			handsh = &basic.BasicHandshaker{}
+		case "xobfs":
+
+			var opts iconf.HandshakeTypeXOBFS
+			if err := inb.Handshake.DecodeSettings(&opts); err != nil {
+				logger.Error("Failed to get opts for handshake", "inb", name, "type", inb.Handshake.Type, "error", err)
+				os.Exit(-1)
+			}
+
+			handsh = obfsh.NewObfsHandshaker(
+				[]byte(opts.Psk),
+				opts.StartJunk,
+				int64(opts.RotateSeconds),
+				opts.RotateJunkCount,
+				opts.MinJunkPacks,
+				opts.MaxJunkPacks,
+			)
 		default:
-			logger.Error("Invalid handshake method", "inb", name, "name", inb.Handsh)
+			logger.Error("Invalid handshake method", "inb", name, "type", inb.Handshake.Type)
 			os.Exit(-1)
 		}
 
@@ -133,15 +146,4 @@ func startServer(addr string, handsh handshake.HandshakeHandler, trans transport
 	if err := server.Start(ctx); err != nil {
 		logger.Error("Failed to start server", "error", err)
 	}
-}
-
-type NullObfuscator struct {
-}
-
-func (o *NullObfuscator) WrapConnTo(conn net.Conn) (net.Conn, error) {
-	return conn, nil
-}
-
-func (o *NullObfuscator) WrapConnFrom(conn net.Conn) (net.Conn, error) {
-	return conn, nil
 }

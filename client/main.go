@@ -10,35 +10,33 @@ import (
 	"syscall"
 	"time"
 
-	b64 "encoding/base64"
-	"encoding/json"
-
 	"github.com/agnostic-t/neutrino-core/core/client"
 	"github.com/agnostic-t/neutrino-core/handshake"
 	"github.com/agnostic-t/neutrino-core/local"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
 	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
+	"github.com/agnostic-t/neutrino-handsh/handshake/obfsh"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
-	"github.com/agnostic-t/neutrino-vpn/internal/config"
+	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
 
 	"github.com/agnostic-t/neutrino-lproxies/socks5"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 )
 
-func convertB64ToInbound(inb string) (config.ClientsServer, error) {
-	jsonBytes, err := b64.StdEncoding.DecodeString(inb)
-	if err != nil {
-		return config.ClientsServer{}, err
-	}
+// func convertB64ToInbound(inb string) (config.ClientsServer, error) {
+// 	jsonBytes, err := b64.StdEncoding.DecodeString(inb)
+// 	if err != nil {
+// 		return config.ClientsServer{}, err
+// 	}
 
-	var config config.ClientsServer
-	if err := json.Unmarshal(jsonBytes, &config); err != nil {
-		return config, err
-	}
+// 	var config config.ClientsServer
+// 	if err := json.Unmarshal(jsonBytes, &config); err != nil {
+// 		return config, err
+// 	}
 
-	return config, nil
-}
+// 	return config, nil
+// }
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -53,7 +51,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	config, err := config.LoadClientConfig(pathConfig)
+	config, err := iconf.LoadClientConfig(pathConfig)
 	if err != nil {
 		logger.Error("Failed to load config", "error", err)
 		os.Exit(-1)
@@ -66,7 +64,7 @@ func main() {
 		}
 	}()
 
-	for prx_type, addr := range config.Lproxy {
+	for prx_type, addr := range config.LProxy {
 		var proxy local.Proxy
 
 		switch prx_type {
@@ -85,28 +83,50 @@ func main() {
 
 	var obfs obfuscation.Obfuscator
 
-	switch server.Obfs {
+	switch server.Obfs.Type {
 	case "xobfs":
-		obfs = &xobfs.Obfuscator{Psk: []byte(server.Psk)}
+		var opts iconf.ObfsTypeXOBFS
+		if err := server.Obfs.DecodeSettings(&opts); err != nil {
+			logger.Error("Failed to get opts for obfs", "type", server.Obfs.Type, "error", err)
+			os.Exit(-1)
+		}
+
+		obfs = &xobfs.Obfuscator{Psk: []byte(opts.Psk)}
 	case "null":
 		obfs = &NullObfuscator{}
 	default:
-		logger.Error("Invalid obfuscation algorithm", "type", server.Obfs)
+		logger.Error("Invalid obfuscation algorithm", "type", server.Obfs.Type)
 		os.Exit(-1)
 	}
 
-	var handshake handshake.HandshakeHandler
-	switch server.Handsh {
+	var handsh handshake.HandshakeHandler
+	switch server.Handshake.Type {
 	case "plain":
-		handshake = &basic.BasicHandshaker{}
+		handsh = &basic.BasicHandshaker{}
+	case "xobfs":
+
+		var opts iconf.HandshakeTypeXOBFS
+		if err := server.Handshake.DecodeSettings(&opts); err != nil {
+			logger.Error("Failed to get opts for handshake", "type", server.Handshake.Type, "error", err)
+			os.Exit(-1)
+		}
+
+		handsh = obfsh.NewObfsHandshaker(
+			[]byte(opts.Psk),
+			opts.StartJunk,
+			int64(opts.RotateSeconds),
+			opts.RotateJunkCount,
+			opts.MinJunkPacks,
+			opts.MaxJunkPacks,
+		)
 	default:
-		logger.Error("Invalid handshake algorithm", "type", server.Handsh)
+		logger.Error("Invalid handshake algorithm", "type", server.Handshake.Type)
 		os.Exit(-1)
 	}
 
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
-		go startClient(addr, prx, handshake, trans, obfs, logger, ctx, &wg)
+		go startClient(addr, prx, handsh, trans, obfs, logger, ctx, &wg)
 		wg.Add(1)
 	}
 
