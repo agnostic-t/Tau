@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"sync"
@@ -13,12 +12,16 @@ import (
 	"github.com/agnostic-t/neutrino-core/core/client"
 	"github.com/agnostic-t/neutrino-core/handshake"
 	"github.com/agnostic-t/neutrino-core/local"
+	"github.com/agnostic-t/neutrino-core/nmux"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
 	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
 	"github.com/agnostic-t/neutrino-handsh/handshake/obfsh"
+	"github.com/agnostic-t/neutrino-mux/yamuxed"
+	"github.com/agnostic-t/neutrino-obfs/nobfs"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
+	"github.com/hashicorp/yamux"
 
 	"github.com/agnostic-t/neutrino-lproxies/socks5"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
@@ -81,6 +84,20 @@ func main() {
 	server := config.Servers[config.Selected]
 	trans := tcp.NewClient(server.Address, 5*time.Second)
 
+	muxEnabled := true
+	var muxer nmux.Multiplexer
+
+	switch server.Mux.Type {
+	case "null":
+		muxEnabled = false
+	case "yamux":
+		cfg := yamux.DefaultConfig()
+		cfg.EnableKeepAlive = true
+		muxer = yamuxed.NewYamuxed(cfg)
+	default:
+		logger.Error("Invalid mux method", "type", server.Mux.Type)
+		os.Exit(-1)
+	}
 	var obfs obfuscation.Obfuscator
 
 	switch server.Obfs.Type {
@@ -93,7 +110,7 @@ func main() {
 
 		obfs = &xobfs.Obfuscator{Psk: []byte(opts.Psk)}
 	case "null":
-		obfs = &NullObfuscator{}
+		obfs = &nobfs.NullObfuscator{}
 	default:
 		logger.Error("Invalid obfuscation algorithm", "type", server.Obfs.Type)
 		os.Exit(-1)
@@ -126,7 +143,18 @@ func main() {
 
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
-		go startClient(addr, prx, handsh, trans, obfs, logger, ctx, &wg)
+		go startClient(
+			addr,
+			prx,
+			handsh,
+			trans,
+			obfs,
+			muxer,
+			muxEnabled,
+			logger,
+			ctx,
+			&wg,
+		)
 		wg.Add(1)
 	}
 
@@ -139,11 +167,13 @@ func startClient(
 	handsh handshake.HandshakeHandler,
 	trans transport.Client,
 	obfs obfuscation.Obfuscator,
+	muxer nmux.Multiplexer,
+	enabledMuxer bool,
 	logger *slog.Logger,
 	ctx context.Context,
 	wg *sync.WaitGroup,
 ) {
-	client := client.NewClient(lproxy, trans, obfs, handsh, logger)
+	client := client.NewClient(lproxy, trans, obfs, handsh, muxer, enabledMuxer, logger)
 
 	logger.Info("Starting Neutrino Client", "laddr", laddr)
 
@@ -152,15 +182,4 @@ func startClient(
 	}
 
 	wg.Done()
-}
-
-type NullObfuscator struct {
-}
-
-func (o *NullObfuscator) WrapConnTo(conn net.Conn) (net.Conn, error) {
-	return conn, nil
-}
-
-func (o *NullObfuscator) WrapConnFrom(conn net.Conn) (net.Conn, error) {
-	return conn, nil
 }

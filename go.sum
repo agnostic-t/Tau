@@ -1,10 +1,14 @@
-github.com/agnostic-t/neutrino-core v0.0.0-20260531120049-579032d763b1 h1:+fd+DwUXgH6KsbvuIRkwvsAP3kf1b6S8cz/aisynTA8=
-github.com/agnostic-t/neutrino-core v0.0.0-20260531120049-579032d763b1/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
+github.com/agnostic-t/neutrino-core v0.0.0-20260601212500-a6a28e3f95fa h1:Udj6HkkwmCLR4Ke3GDhlTm8b8LKPVk760TQcnrlG0S0=
+github.com/agnostic-t/neutrino-core v0.0.0-20260601212500-a6a28e3f95fa/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260531204348-6a36f10125ba h1:Lh+tSCVWScqLcAtuP1fjqMpItVMAVE2FQknWwr1iOlM=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260531204348-6a36f10125ba/go.mod h1:3DH8ljj68lg9kldaHcwI1BJKDG8kv89LN4VaVLNJ1B0=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260527151951-66dce49712c8 h1:x1LkIWamnCOkEhEsi0U6UopV4Iffb5I2oyXDkfgx7Vs=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260527151951-66dce49712c8/go.mod h1:k3pNvAyUd4OlxxK7KuMMyxvVsOiIp2KXa/2krAUOctY=
+github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b h1:+CFHNBZrAAcRu00BWkQjLk/wexi6BnURO7rQM/Ark9Q=
+github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b/go.mod h1:tqyTqy7Lzfj0W2YJOmRuXQUaJLzL3afFfXmhOkjSg40=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a h1:Mbx9Lqw2C9scKrdu00/05RShXzYJe7bOczMUKaOuWT8=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a/go.mod h1:OuxDfOHuBg4g8xPEH2efz7vQu54v0msb3cpo3aKFu28=
 github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7 h1:ybKgu0gCAvgYWPr2Y82SFRjMpzXdRXUHURlQkLJsbe4=
 github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
+github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8=
+github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=

@@ -6,16 +6,12 @@ import (
 	"fmt"
 )
 
-// ModuleConfig представляет конфигурацию модуля (obfs, handshake, trans).
-// Поддерживает два формата JSON: строку ("type") или объект {"type": "...", "settings": {...}}
 type ModuleConfig struct {
 	Type     string         `json:"type"`
 	Settings map[string]any `json:"settings,omitempty"`
 }
 
-// UnmarshalJSON кастомно парсит JSON, обеспечивая обратную совместимость
 func (m *ModuleConfig) UnmarshalJSON(data []byte) error {
-	// 1. Пробуем распарсить как объект
 	var obj struct {
 		Type     string         `json:"type"`
 		Settings map[string]any `json:"settings,omitempty"`
@@ -26,7 +22,6 @@ func (m *ModuleConfig) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	// 2. Фоллбек на простую строку (legacy)
 	var str string
 	if err := json.Unmarshal(data, &str); err == nil {
 		m.Type = str
@@ -36,7 +31,6 @@ func (m *ModuleConfig) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("invalid module config: expected string or object with 'type' field")
 }
 
-// GetSetting безопасный доступ к произвольному параметру
 func (m *ModuleConfig) GetSetting(key string) (any, bool) {
 	if m.Settings == nil {
 		return nil, false
@@ -45,7 +39,6 @@ func (m *ModuleConfig) GetSetting(key string) (any, bool) {
 	return val, ok
 }
 
-// DecodeSettings декодирует settings в конкретную структуру для типизированной работы
 func (m *ModuleConfig) DecodeSettings(v any) error {
 	if m.Settings == nil {
 		return nil
@@ -70,6 +63,7 @@ type ServerInbound struct {
 	Obfs      ModuleConfig `json:"obfs"`
 	Handshake ModuleConfig `json:"handshake"`
 	Trans     ModuleConfig `json:"trans"`
+	Mux       ModuleConfig `json:"mux"`
 }
 
 type ClientConfig struct {
@@ -83,6 +77,7 @@ type ClientsServer struct {
 	Obfs      ModuleConfig `json:"obfs"`
 	Handshake ModuleConfig `json:"handshake"`
 	Trans     ModuleConfig `json:"trans"`
+	Mux       ModuleConfig `json:"mux"`
 	Traffic   string       `json:"traffic,omitempty"`
 	Locked    bool         `json:"locked,omitempty"`
 }

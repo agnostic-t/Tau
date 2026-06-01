@@ -11,8 +11,11 @@ import (
 
 	"github.com/agnostic-t/neutrino-core/core/server"
 	"github.com/agnostic-t/neutrino-core/handshake"
+	"github.com/agnostic-t/neutrino-core/nmux"
 	"github.com/agnostic-t/neutrino-core/obfuscation"
 	"github.com/agnostic-t/neutrino-core/transport"
+	"github.com/agnostic-t/neutrino-mux/yamuxed"
+	"github.com/hashicorp/yamux"
 
 	"github.com/agnostic-t/neutrino-handsh/handshake/basic"
 	"github.com/agnostic-t/neutrino-handsh/handshake/obfsh"
@@ -119,11 +122,28 @@ func main() {
 			os.Exit(-1)
 		}
 
+		muxEnabled := true
+		var muxer nmux.Multiplexer
+
+		switch inb.Mux.Type {
+		case "null":
+			muxEnabled = false
+		case "yamux":
+			cfg := yamux.DefaultConfig()
+			cfg.EnableKeepAlive = true
+			muxer = yamuxed.NewYamuxed(cfg)
+		default:
+			logger.Error("Invalid mux method", "inb", name, "type", inb.Mux.Type)
+			os.Exit(-1)
+		}
+
 		go startServer(
 			config.BindIP+":"+strconv.Itoa(inb.Port),
 			handsh,
 			trans,
 			obfs,
+			muxer,
+			muxEnabled,
 			logger,
 			&wg,
 		)
@@ -133,10 +153,19 @@ func main() {
 	wg.Wait()
 }
 
-func startServer(addr string, handsh handshake.HandshakeHandler, trans transport.Server, obfs obfuscation.Obfuscator, logger *slog.Logger, wg *sync.WaitGroup) {
+func startServer(
+	addr string,
+	handsh handshake.HandshakeHandler,
+	trans transport.Server,
+	obfs obfuscation.Obfuscator,
+	muxer nmux.Multiplexer,
+	enabledMuxer bool,
+	logger *slog.Logger,
+	wg *sync.WaitGroup,
+) {
 	defer wg.Done()
 
-	server := server.NewServer(trans, obfs, handsh, logger)
+	server := server.NewServer(trans, obfs, handsh, muxer, enabledMuxer, logger)
 
 	logger.Info("Server is starting", "addr", addr)
 

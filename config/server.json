@@ -5,10 +5,7 @@
     "i-123": {
       "port": 9001,
       "obfs": {
-        "type": "xobfs",
-        "settings": {
-          "psk": "8459548881"
-        }
+        "type": "null"
       },
       "handshake": {
         "type": "xobfs",
@@ -23,6 +20,9 @@
       },
       "trans": {
         "type": "tcp"
+      },
+      "mux": {
+        "type": "yamux"
       }
     },
     "n-123": {
@@ -35,6 +35,9 @@
       },
       "handshake": {
         "type": "plain"
+      },
+      "mux": {
+        "type": "null"
       }
     }
   }
