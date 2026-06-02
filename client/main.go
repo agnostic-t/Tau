@@ -21,6 +21,7 @@ import (
 	"github.com/agnostic-t/neutrino-obfs/nobfs"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
+	itun "github.com/agnostic-t/neutrino-vpn/internal/tun"
 	"github.com/hashicorp/yamux"
 
 	"github.com/agnostic-t/neutrino-lproxies/socks5"
@@ -59,6 +60,24 @@ func main() {
 		logger.Error("Failed to load config", "error", err)
 		os.Exit(-1)
 	}
+
+	tunman, err := itun.NewManager("tun0", "wlp2s0", "192.168.1.1")
+	if err != nil {
+		logger.Error("Failed to start tun manager on", "tunIF", "tun0", "mainIF", "wlp2s0", "gateway", "192.168.1.1", "error", err)
+		os.Exit(-1)
+	}
+
+	if err := tunman.Enable(); err != nil {
+		logger.Error("Failed to enable tun manager", "error", err)
+		os.Exit(-1)
+	}
+
+	defer func() {
+		itun.StopTUN2SOCKS()
+		if err := tunman.Disable(); err != nil {
+			logger.Warn("Failed to properly disable TUN", "error", err)
+		}
+	}()
 
 	proxies := make(map[string]local.Proxy)
 	defer func() {
@@ -143,6 +162,7 @@ func main() {
 
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
+		itun.StartTUN2SOCKS(tunman, addr)
 		go startClient(
 			addr,
 			prx,
