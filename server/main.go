@@ -26,17 +26,6 @@ import (
 	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
 )
 
-// func exportInboundAsB64(externalIP string, inb iconf.ServerInbound) (string, error) {
-
-// 	jsonBytes, err := json.Marshal(&inbClient)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return b64.StdEncoding.EncodeToString(jsonBytes), nil
-// 	return "", nil
-// }
-
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
@@ -62,13 +51,13 @@ func main() {
 	for name, inb := range config.Inbounds {
 		logger.Info("Processing inbound", "name", name)
 
-		// b64_str, err := exportInboundAsB64(config.ExternalIP, inb)
-		// if err != nil {
-		// 	logger.Error("Failed to get B64 string for inbound", "inb", inb)
-		// 	os.Exit(-1)
-		// }
+		b64_str, err := iconf.EncodeServerConfig(config.ExternalIP, inb)
+		if err != nil {
+			logger.Error("Failed to get B64 string for inbound", "inb", inb)
+			os.Exit(-1)
+		}
 
-		// logger.Info("For this inbound B64: ", "b64", "tau://"+b64_str)
+		logger.Info("For this inbound B64: ", "b64", b64_str)
 
 		var obfs obfuscation.Obfuscator
 		var trans transport.Server
