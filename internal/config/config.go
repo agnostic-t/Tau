@@ -67,6 +67,7 @@ type ServerInbound struct {
 }
 
 type ClientConfig struct {
+	Tun      *ClientTUN               `json:"tun"`
 	LProxy   map[string]string        `json:"lproxy"`
 	Selected string                   `json:"selected"`
 	Servers  map[string]ClientsServer `json:"servers"`
@@ -80,6 +81,13 @@ type ClientsServer struct {
 	Mux       ModuleConfig `json:"mux"`
 	Traffic   string       `json:"traffic,omitempty"`
 	Locked    bool         `json:"locked,omitempty"`
+}
+
+type ClientTUN struct {
+	Enabled bool   `json:"enabled"`
+	TunIF   string `json:"tun"`
+	MainIF  string `json:"main"`
+	Gateway string `json:"gateway"`
 }
 
 func (c *ClientConfig) Validate() error {

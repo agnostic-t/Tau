@@ -34,10 +34,18 @@
         "type": "tcp"
       },
       "handshake": {
-        "type": "plain"
+        "type": "xobfs",
+        "settings": {
+          "psk": "1237572394",
+          "startJunk": true,
+          "rotateSeconds": 60,
+          "rotateJunkCount": true,
+          "minJunkPacks": 0,
+          "maxJunkPacks": 5
+        }
       },
       "mux": {
-        "type": "null"
+        "type": "yamux"
       }
     }
   }

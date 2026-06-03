@@ -42,6 +42,36 @@ import (
 // 	return config, nil
 // }
 
+func startTUN(
+	tunIF string,
+	mainIF string,
+	gateway string,
+
+	ctx context.Context,
+	logger *slog.Logger,
+) *itun.Manager {
+	tunman, err := itun.NewManager(tunIF, mainIF, gateway)
+	if err != nil {
+		logger.Error("Failed to start tun manager on", "tunIF", tunIF, "mainIF", mainIF, "gateway", gateway, "error", err)
+		os.Exit(-1)
+	}
+
+	if err := tunman.Enable(); err != nil {
+		logger.Error("Failed to enable tun manager", "error", err)
+		os.Exit(-1)
+	}
+
+	go func() {
+		<-ctx.Done()
+		itun.StopTUN2SOCKS()
+		if err := tunman.Disable(); err != nil {
+			logger.Warn("Failed to properly disable TUN", "error", err)
+		}
+	}()
+
+	return tunman
+}
+
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
@@ -61,23 +91,19 @@ func main() {
 		os.Exit(-1)
 	}
 
-	tunman, err := itun.NewManager("tun0", "wlp2s0", "192.168.1.1")
-	if err != nil {
-		logger.Error("Failed to start tun manager on", "tunIF", "tun0", "mainIF", "wlp2s0", "gateway", "192.168.1.1", "error", err)
-		os.Exit(-1)
+	var tunman *itun.Manager = nil
+	if config.Tun != nil && config.Tun.Enabled {
+		logger.Info("Enabling TUN")
+		tunman = startTUN(
+			config.Tun.TunIF,
+			config.Tun.MainIF,
+			config.Tun.Gateway,
+			ctx,
+			logger,
+		)
+	} else {
+		logger.Info("TUN is disabled")
 	}
-
-	if err := tunman.Enable(); err != nil {
-		logger.Error("Failed to enable tun manager", "error", err)
-		os.Exit(-1)
-	}
-
-	defer func() {
-		itun.StopTUN2SOCKS()
-		if err := tunman.Disable(); err != nil {
-			logger.Warn("Failed to properly disable TUN", "error", err)
-		}
-	}()
 
 	proxies := make(map[string]local.Proxy)
 	defer func() {
@@ -91,7 +117,7 @@ func main() {
 
 		switch prx_type {
 		case "socks5":
-			proxy = socks5.NewProxy(addr)
+			proxy = socks5.NewProxy(addr, ctx)
 		default:
 			logger.Error("Unknown local proxy type", "type", prx_type)
 			os.Exit(-1)
@@ -162,7 +188,10 @@ func main() {
 
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
-		itun.StartTUN2SOCKS(tunman, addr)
+		if tunman != nil {
+			itun.StartTUN2SOCKS(tunman, addr)
+		}
+
 		go startClient(
 			addr,
 			prx,
