@@ -14,7 +14,7 @@ func StartTUN2SOCKS(
 	key := new(engine.Key)
 	key.Device = tunManager.tunIF
 	key.Proxy = proxyAddr
-	key.Interface = tunManager.primalIF
+	// key.Interface = tunManager.primalIF
 
 	engine.Insert(key)
 

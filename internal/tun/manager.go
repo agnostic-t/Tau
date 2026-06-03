@@ -18,15 +18,16 @@ type Manager struct {
 	mainGateway string
 	savedRoutes []Route
 	isEnabled   bool
+	serverIP    string
 }
 
 type Route struct {
 	Raw string
 }
 
-func NewManager(tunIF, primalIF, mainGateway string) (*Manager, error) {
-	if !isAlphanum(tunIF) || !isAlphanum(primalIF) || !isValidIPv4(mainGateway) {
-		return nil, errors.New("interfaces or main gateway have incorrect values")
+func NewManager(tunIF, primalIF, mainGateway, serverIP string) (*Manager, error) {
+	if !isAlphanum(tunIF) || !isAlphanum(primalIF) || !isValidIPv4(mainGateway) || !isValidIPv4(serverIP) {
+		return nil, errors.New("interfaces/main gateway/server have incorrect values")
 	}
 
 	if os.Geteuid() != 0 {
@@ -37,6 +38,7 @@ func NewManager(tunIF, primalIF, mainGateway string) (*Manager, error) {
 		tunIF:       tunIF,
 		primalIF:    primalIF,
 		mainGateway: mainGateway,
+		serverIP:    serverIP,
 	}, nil
 }
 
@@ -58,6 +60,7 @@ func (m *Manager) Enable() error {
 		{"ip", "tuntap", "add", "mode", "tun", "dev", m.tunIF},
 		{"ip", "addr", "add", "198.18.0.1/15", "dev", m.tunIF},
 		{"ip", "link", "set", "dev", m.tunIF, "up"},
+		{"ip", "route", "add", m.serverIP, "via", m.mainGateway, "dev", m.primalIF},
 		{"ip", "route", "del", "default"},
 		{"ip", "route", "add", "default", "via", "198.18.0.1", "dev", m.tunIF, "metric", "1"},
 		{"ip", "route", "add", "default", "via", m.mainGateway, "dev", m.primalIF, "metric", "10"},
@@ -71,6 +74,9 @@ func (m *Manager) Enable() error {
 			return fmt.Errorf("step %d (%v) failed: %w", i, args, err)
 		}
 	}
+
+	exec.Command("ip", "-6", "addr", "add", "fd00::1/64", "dev", m.tunIF).Run()
+	exec.Command("ip", "-6", "route", "add", "default", "dev", m.tunIF, "metric", "1").Run()
 
 	m.isEnabled = true
 	return nil
@@ -109,9 +115,11 @@ func (m *Manager) teardown() error {
 		errs = append(errs, fmt.Errorf("failed to delete interface %s: %w", m.tunIF, err))
 	}
 
-	// 6. Возвращаем sysctl
 	exec.Command("sysctl", "-w", "net.ipv4.conf.all.rp_filter=1").Run()
 	exec.Command("sysctl", "-w", "net.ipv4.conf."+m.primalIF+".rp_filter=1").Run()
+
+	exec.Command("ip", "tuntap", "del", "mode", "tun", "dev", m.tunIF).Run()
+	exec.Command("ip", "route", "del", m.serverIP, "via", m.mainGateway, "dev", m.primalIF).Run()
 
 	if len(errs) > 0 {
 		return errors.Join(errs...)

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -46,11 +47,12 @@ func startTUN(
 	tunIF string,
 	mainIF string,
 	gateway string,
+	serverIP string,
 
 	ctx context.Context,
 	logger *slog.Logger,
 ) *itun.Manager {
-	tunman, err := itun.NewManager(tunIF, mainIF, gateway)
+	tunman, err := itun.NewManager(tunIF, mainIF, gateway, serverIP)
 	if err != nil {
 		logger.Error("Failed to start tun manager on", "tunIF", tunIF, "mainIF", mainIF, "gateway", gateway, "error", err)
 		os.Exit(-1)
@@ -64,9 +66,6 @@ func startTUN(
 	go func() {
 		<-ctx.Done()
 		itun.StopTUN2SOCKS()
-		if err := tunman.Disable(); err != nil {
-			logger.Warn("Failed to properly disable TUN", "error", err)
-		}
 	}()
 
 	return tunman
@@ -89,20 +88,6 @@ func main() {
 	if err != nil {
 		logger.Error("Failed to load config", "error", err)
 		os.Exit(-1)
-	}
-
-	var tunman *itun.Manager = nil
-	if config.Tun != nil && config.Tun.Enabled {
-		logger.Info("Enabling TUN")
-		tunman = startTUN(
-			config.Tun.TunIF,
-			config.Tun.MainIF,
-			config.Tun.Gateway,
-			ctx,
-			logger,
-		)
-	} else {
-		logger.Info("TUN is disabled")
 	}
 
 	proxies := make(map[string]local.Proxy)
@@ -128,6 +113,21 @@ func main() {
 
 	server := config.Servers[config.Selected]
 	trans := tcp.NewClient(server.Address, 5*time.Second)
+
+	var tunman *itun.Manager = nil
+	if config.Tun != nil && config.Tun.Enabled {
+		logger.Info("Enabling TUN")
+		tunman = startTUN(
+			config.Tun.TunIF,
+			config.Tun.MainIF,
+			config.Tun.Gateway,
+			strings.Split(server.Address, ":")[0],
+			ctx,
+			logger,
+		)
+	} else {
+		logger.Info("TUN is disabled")
+	}
 
 	muxEnabled := true
 	var muxer nmux.Multiplexer
@@ -208,6 +208,13 @@ func main() {
 	}
 
 	wg.Wait()
+
+	if tunman != nil {
+		logger.Info("Disabling TUN interface...")
+		if err := tunman.Disable(); err != nil {
+			logger.Warn("Failed to properly disable TUN", "error", err)
+		}
+	}
 }
 
 func startClient(
