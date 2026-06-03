@@ -67,6 +67,7 @@ type ServerInbound struct {
 }
 
 type ClientConfig struct {
+	Filter   *ClientFilter            `json:"filter"`
 	Tun      *ClientTUN               `json:"tun"`
 	LProxy   map[string]string        `json:"lproxy"`
 	Selected string                   `json:"selected"`
@@ -88,6 +89,12 @@ type ClientTUN struct {
 	TunIF   string `json:"tun"`
 	MainIF  string `json:"main"`
 	Gateway string `json:"gateway"`
+}
+
+type ClientFilter struct {
+	Enabled    bool   `json:"enabled"`
+	DirectPath string `json:"direct"`
+	BlockPath  string `json:"block"`
 }
 
 func (c *ClientConfig) Validate() error {

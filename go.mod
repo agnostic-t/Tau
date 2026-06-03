@@ -3,7 +3,7 @@ module github.com/agnostic-t/neutrino-vpn
 go 1.26.3
 
 require (
-	github.com/agnostic-t/neutrino-core v0.0.0-20260603083547-34bec713125c
+	github.com/agnostic-t/neutrino-core v0.0.0-20260603154039-b594f89ce100
 	github.com/agnostic-t/neutrino-handsh v0.0.0-20260602175221-604aeb624bf2
 	github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603094217-9be7ce1a8893
 	github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b

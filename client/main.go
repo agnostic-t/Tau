@@ -22,6 +22,7 @@ import (
 	"github.com/agnostic-t/neutrino-obfs/nobfs"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
 	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
+	"github.com/agnostic-t/neutrino-vpn/internal/routing"
 	itun "github.com/agnostic-t/neutrino-vpn/internal/tun"
 	"github.com/hashicorp/yamux"
 
@@ -186,6 +187,25 @@ func main() {
 		os.Exit(-1)
 	}
 
+	var directIF string = ""
+	if config.Tun != nil {
+		directIF = config.Tun.MainIF
+	}
+
+	var flt local.Filter
+
+	filteringEnabled := config.Filter != nil && config.Filter.Enabled
+	if filteringEnabled {
+		flt, err = routing.NewRoutingFilter(config.Filter.DirectPath, config.Filter.BlockPath)
+		if err != nil {
+			logger.Error("Failed to compile routing rules", "error", err)
+			os.Exit(-1)
+		}
+
+	} else {
+		flt = &routing.DummyFilter{}
+	}
+
 	var wg sync.WaitGroup
 	for addr, prx := range proxies {
 		if tunman != nil {
@@ -200,6 +220,8 @@ func main() {
 			obfs,
 			muxer,
 			muxEnabled,
+			flt,
+			directIF,
 			logger,
 			ctx,
 			&wg,
@@ -225,11 +247,13 @@ func startClient(
 	obfs obfuscation.Obfuscator,
 	muxer nmux.Multiplexer,
 	enabledMuxer bool,
+	filter local.Filter,
+	directIF string,
 	logger *slog.Logger,
 	ctx context.Context,
 	wg *sync.WaitGroup,
 ) {
-	client := client.NewClient(lproxy, trans, obfs, handsh, muxer, enabledMuxer, logger)
+	client := client.NewClient(lproxy, trans, obfs, handsh, muxer, filter, directIF, enabledMuxer, logger)
 
 	logger.Info("Starting Neutrino Client", "laddr", laddr)
 

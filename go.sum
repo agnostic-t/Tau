@@ -1,9 +1,7 @@
-github.com/agnostic-t/neutrino-core v0.0.0-20260603083547-34bec713125c h1:m69XXsTcZFZeoE8Uqng0x/c5z+XvMmmOb3vG4WVr+3Q=
-github.com/agnostic-t/neutrino-core v0.0.0-20260603083547-34bec713125c/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
+github.com/agnostic-t/neutrino-core v0.0.0-20260603154039-b594f89ce100 h1:AOvwX4Q1QfR3J0CG7upyBlKbnsoEuQLdf6QMHwU7UN4=
+github.com/agnostic-t/neutrino-core v0.0.0-20260603154039-b594f89ce100/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260602175221-604aeb624bf2 h1:hYWiKr+l7B5d6EKr3y3Ac1bABN8AliNbFL6kjoG14YM=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260602175221-604aeb624bf2/go.mod h1:bkPpyYe8H209lo55B8pK7KkJI2wokXgvAVZx6ER3nK8=
-github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603093939-6afaf157623a h1:JedrWcHvbA2YKIb6TYi1YvUeUm7KpxKyXZqhJ7W+Qwc=
-github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603093939-6afaf157623a/go.mod h1:mfgTnFJ2gd9vO/7W9ksCikFfioGU4ZKu0f28uyQrHjE=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603094217-9be7ce1a8893 h1:y5BXwBYC8PtQczpio88QQMnhwbLGvowXZKfmSygBb9U=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603094217-9be7ce1a8893/go.mod h1:mfgTnFJ2gd9vO/7W9ksCikFfioGU4ZKu0f28uyQrHjE=
 github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b h1:+CFHNBZrAAcRu00BWkQjLk/wexi6BnURO7rQM/Ark9Q=
