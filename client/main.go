@@ -30,20 +30,6 @@ import (
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 )
 
-// func convertB64ToInbound(inb string) (config.ClientsServer, error) {
-// 	jsonBytes, err := b64.StdEncoding.DecodeString(inb)
-// 	if err != nil {
-// 		return config.ClientsServer{}, err
-// 	}
-
-// 	var config config.ClientsServer
-// 	if err := json.Unmarshal(jsonBytes, &config); err != nil {
-// 		return config, err
-// 	}
-
-// 	return config, nil
-// }
-
 func startTUN(
 	tunIF string,
 	mainIF string,
