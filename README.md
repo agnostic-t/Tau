@@ -113,15 +113,15 @@ It is possible to fill in only `type`, without `settings` at all. The following 
 
 2) `handshake`:
     - `type`: `xobfs` or `plain`
-      - `xobfs` changes the number of packets when connecting, has timeferal keys, and obfuscates the purpose of the handshake. 
+      - `xobfs` changes the number of packets when connecting, has timeferal keys, and obfuscates the target. 
       - `plain` transmits the connection target as plain text
     - `settings`: needed for `xobfs`:
       - `psk`: string, obfuscation key
-      - `startJunk`: Boolean value, whether to use garbage bags or not
+      - `startJunk`: Boolean value, whether to use junk packets or not
       - `rotateSeconds`: the number of times in how many seconds to change the signature of the handshake
-      - `rotateJunkCount`: Boolean value, use timeferal keys to change the number of garbage bags or not
-      - `minJunkPacks`: number, minimum number of garbage bags
-      - `maxJunkPacks`: number, maximum number of garbage bags
+      - `rotateJunkCount`: Boolean value, use timeferal keys to change the number of junk packets or not
+      - `minJunkPacks`: number, minimum number of junk packets
+      - `maxJunkPacks`: number, maximum number of junk packets
 
 3. `trans`:
     - `type`: currently only `tcp`, no settings required
