@@ -4,7 +4,7 @@ English | [Русский](./README_RU.md)
 
 # Tau
 
-A VPN project built on basic implementations of [Neutrino core] modules (https://github.com/agnostic-t/neutrino-core ). Tau supports:
+A VPN project built on basic implementations of [Neutrino core](https://github.com/agnostic-t/neutrino-core) modules . Tau supports:
 
 - TCP as a data transport over the network
 - Null and xOBFS modes for traffic obfuscation
