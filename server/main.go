@@ -51,7 +51,7 @@ func main() {
 	for name, inb := range config.Inbounds {
 		logger.Info("Processing inbound", "name", name)
 
-		b64_str, err := iconf.EncodeServerConfig(config.ExternalIP, inb)
+		b64_str, err := iconf.EncodeServerConfig(name, config.ExternalIP, inb)
 		if err != nil {
 			logger.Error("Failed to get B64 string for inbound", "inb", inb)
 			os.Exit(-1)

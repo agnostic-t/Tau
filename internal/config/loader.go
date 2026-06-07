@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type configWrapper struct {
+	Name string        `json:"name"`
+	Inb  ClientsServer `json:"inb"`
+}
+
 func LoadServerConfig(path string) (ServerConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -36,7 +41,7 @@ func LoadClientConfig(path string) (ClientConfig, error) {
 	return config, nil
 }
 
-func EncodeServerConfig(ip string, inbound ServerInbound) (string, error) {
+func EncodeServerConfig(name, ip string, inbound ServerInbound) (string, error) {
 	clientServer := ClientsServer{
 		Address:   fmt.Sprintf("%s:%d", ip, inbound.Port),
 		Obfs:      inbound.Obfs,
@@ -45,7 +50,12 @@ func EncodeServerConfig(ip string, inbound ServerInbound) (string, error) {
 		Mux:       inbound.Mux,
 	}
 
-	data, err := json.Marshal(clientServer)
+	wrapper := configWrapper{
+		Name: name,
+		Inb:  clientServer,
+	}
+
+	data, err := json.Marshal(wrapper)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal client server config: %w", err)
 	}
@@ -54,22 +64,22 @@ func EncodeServerConfig(ip string, inbound ServerInbound) (string, error) {
 	return "tau://" + encoded, nil
 }
 
-func DecodeClientConfig(encoded string) (*ClientsServer, error) {
+func DecodeClientConfig(encoded string) (*ClientsServer, string, error) {
 	if !strings.HasPrefix(encoded, "tau://") {
-		return nil, fmt.Errorf("config string has no tau://, can be different proto")
+		return nil, "", fmt.Errorf("config string has no tau://, can be different proto")
 	}
 
 	encoded, _ = strings.CutPrefix(encoded, "tau://")
 
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode base64: %w", err)
+		return nil, "", fmt.Errorf("failed to decode base64: %w", err)
 	}
 
-	var clientServer ClientsServer
-	if err := json.Unmarshal(data, &clientServer); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal client server config: %w", err)
+	var clientServerWrapped configWrapper
+	if err := json.Unmarshal(data, &clientServerWrapped); err != nil {
+		return nil, "", fmt.Errorf("failed to unmarshal client server config: %w", err)
 	}
 
-	return &clientServer, nil
+	return &clientServerWrapped.Inb, clientServerWrapped.Name, nil
 }
