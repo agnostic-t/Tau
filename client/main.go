@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/yamux"
 
 	"github.com/agnostic-t/neutrino-lproxies/socks5"
+	"github.com/agnostic-t/neutrino-transport/basic/http"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 )
 
@@ -99,7 +100,6 @@ func main() {
 	}
 
 	server := config.Servers[config.Selected]
-	trans := tcp.NewClient(server.Address, 5*time.Second)
 
 	var tunman *itun.Manager = nil
 	if config.Tun != nil && config.Tun.Enabled {
@@ -114,6 +114,29 @@ func main() {
 		)
 	} else {
 		logger.Info("TUN is disabled")
+	}
+
+	var trans transport.Client
+	switch server.Trans.Type {
+	case "tcp":
+		trans = tcp.NewClient(server.Address, 5*time.Second)
+	case "http":
+		var opts iconf.TransportTypeHTTP
+		if err := server.Trans.DecodeSettings(&opts); err != nil {
+			logger.Error("Failed to get opts for transport", "server", config.Selected, "type", server.Trans.Type, "error", err)
+			os.Exit(-1)
+		}
+
+		trans = http.NewClient(
+			server.Address,
+			opts.Referer,
+			opts.UserAgent,
+			opts.KeyPath,
+			5*time.Second,
+		)
+	default:
+		logger.Error("Invalid transport method", "type", server.Trans.Type)
+		os.Exit(-1)
 	}
 
 	muxEnabled := true

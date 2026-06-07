@@ -6,7 +6,7 @@ English | [Русский](./README_RU.md)
 
 A VPN project built on basic implementations of [Neutrino core](https://github.com/agnostic-t/neutrino-core) modules . Tau supports:
 
-- TCP as a data transport over the network
+- TCP and HTTP with Nginx mimcry as a data transport over the network
 - Null and xOBFS modes for traffic obfuscation
 - Plain and xOBFS handshake modes
 - Null and Yamux modes for multiplexing
@@ -124,7 +124,12 @@ It is possible to fill in only `type`, without `settings` at all. The following 
       - `maxJunkPacks`: number, maximum number of junk packets
 
 3. `trans`:
-    - `type`: currently only `tcp`, no settings required
+    - `type`:
+      - `tcp`: basic network data transfering protocol
+      - `http`: implements HTTP-requests mimicry for transfering data acros network. It has settings:
+        - `referer`: valid URL of the server (for example `http://127.0.0.1:9001` if inbound is on port 9001)
+        - `keyPath`: path to simulate (for example `/api/v1/upload`)
+        - `userAgent`: needed only on client, can be anything. For maximum security take it from your browser 
 
 4. `mux`:
     - `type`: `yamux` and `null` are available. The first uses multiplexing (1 physical transport connection for multiple requests), the second does not use multiplexing, opens multiple connections to the server to transfer information.

@@ -8,8 +8,8 @@ github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b h1:+CFHNBZ
 github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b/go.mod h1:tqyTqy7Lzfj0W2YJOmRuXQUaJLzL3afFfXmhOkjSg40=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a h1:Mbx9Lqw2C9scKrdu00/05RShXzYJe7bOczMUKaOuWT8=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a/go.mod h1:OuxDfOHuBg4g8xPEH2efz7vQu54v0msb3cpo3aKFu28=
-github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7 h1:ybKgu0gCAvgYWPr2Y82SFRjMpzXdRXUHURlQkLJsbe4=
-github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260607213007-816cc7ecb00e h1:ti/2srEn/gFBHqHuTSvHqa8Vwc0s/ohN3o/PJeV2GxM=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260607213007-816cc7ecb00e/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

@@ -8,7 +8,7 @@ require (
 	github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603094217-9be7ce1a8893
 	github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b
 	github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a
-	github.com/agnostic-t/neutrino-transport v0.0.0-20260527165202-2eb436509aa7
+	github.com/agnostic-t/neutrino-transport v0.0.0-20260607213007-816cc7ecb00e
 	github.com/go-telegram/bot v1.21.0
 	github.com/hashicorp/yamux v0.1.2
 	github.com/xjasonlyu/tun2socks/v2 v2.6.0

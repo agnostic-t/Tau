@@ -12,3 +12,9 @@ type HandshakeTypeXOBFS struct {
 	MinJunkPacks    int    `json:"minJunkPacks"`
 	MaxJunkPacks    int    `json:"maxJunkPacks"`
 }
+
+type TransportTypeHTTP struct {
+	UserAgent string `json:"userAgent"`
+	Referer   string `json:"referer"`
+	KeyPath   string `json:"keyPath"`
+}

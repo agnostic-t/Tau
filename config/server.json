@@ -19,10 +19,14 @@
         }
       },
       "trans": {
-        "type": "tcp"
+        "type": "http",
+        "settings": {
+          "keyPath": "/api/v1/upload",
+          "referer": "http://127.0.0.1:9001"
+        }
       },
       "mux": {
-        "type": "yamux"
+        "type": "null"
       }
     },
     "n-123": {

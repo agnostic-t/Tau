@@ -21,6 +21,7 @@ import (
 	"github.com/agnostic-t/neutrino-handsh/handshake/obfsh"
 	"github.com/agnostic-t/neutrino-obfs/nobfs"
 	"github.com/agnostic-t/neutrino-obfs/xobfs"
+	"github.com/agnostic-t/neutrino-transport/basic/http"
 	"github.com/agnostic-t/neutrino-transport/basic/tcp"
 
 	iconf "github.com/agnostic-t/neutrino-vpn/internal/config"
@@ -79,9 +80,19 @@ func main() {
 			os.Exit(-1)
 		}
 
+		bindAddr := config.BindIP + ":" + strconv.Itoa(inb.Port)
+
 		switch inb.Trans.Type {
 		case "tcp":
-			trans = tcp.NewServer(config.BindIP + ":" + strconv.Itoa(inb.Port))
+			trans = tcp.NewServer(bindAddr)
+		case "http":
+			var opts iconf.TransportTypeHTTP
+			if err := inb.Trans.DecodeSettings(&opts); err != nil {
+				logger.Error("Failed to get opts for transport", "inb", name, "name", inb.Trans.Type, "error", err)
+				os.Exit(-1)
+			}
+
+			trans = http.NewServer(bindAddr, opts.KeyPath, opts.Referer)
 		default:
 			logger.Error("Invalid transport method", "inb", name, "name", inb.Trans)
 			os.Exit(-1)
