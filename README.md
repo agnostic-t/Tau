@@ -129,7 +129,7 @@ It is possible to fill in only `type`, without `settings` at all. The following 
       - `http`: implements HTTP-requests mimicry for transfering data acros network. It has settings:
         - `referer`: valid URL of the server (for example `http://127.0.0.1:9001` if inbound is on port 9001)
         - `keyPath`: path to simulate (for example `/api/v1/upload`)
-        - `userAgent`: needed only on client, can be anything. For maximum security take it from your browser 
+        - `userAgent`: needed only on client, can be anything. For maximum security take it from your browser (for example `Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0`)
 
 4. `mux`:
     - `type`: `yamux` and `null` are available. The first uses multiplexing (1 physical transport connection for multiple requests), the second does not use multiplexing, opens multiple connections to the server to transfer information.
