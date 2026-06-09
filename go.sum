@@ -1,5 +1,5 @@
-github.com/agnostic-t/neutrino-core v0.0.0-20260603154039-b594f89ce100 h1:AOvwX4Q1QfR3J0CG7upyBlKbnsoEuQLdf6QMHwU7UN4=
-github.com/agnostic-t/neutrino-core v0.0.0-20260603154039-b594f89ce100/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
+github.com/agnostic-t/neutrino-core v0.0.0-20260609134806-8d5d0c58bb17 h1:OiUARRJ3vKYkKyS4XkjfAqvnHkCchWFJu2o3XxqvDFM=
+github.com/agnostic-t/neutrino-core v0.0.0-20260609134806-8d5d0c58bb17/go.mod h1:UCnSsC7UhoTc7Vs+6eQprEsFqTIcCA+2lVk2ti+tXnc=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260602175221-604aeb624bf2 h1:hYWiKr+l7B5d6EKr3y3Ac1bABN8AliNbFL6kjoG14YM=
 github.com/agnostic-t/neutrino-handsh v0.0.0-20260602175221-604aeb624bf2/go.mod h1:bkPpyYe8H209lo55B8pK7KkJI2wokXgvAVZx6ER3nK8=
 github.com/agnostic-t/neutrino-lproxies v0.0.0-20260603094217-9be7ce1a8893 h1:y5BXwBYC8PtQczpio88QQMnhwbLGvowXZKfmSygBb9U=
@@ -8,8 +8,8 @@ github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b h1:+CFHNBZ
 github.com/agnostic-t/neutrino-mux v0.0.0-20260601205938-f86c88a44e5b/go.mod h1:tqyTqy7Lzfj0W2YJOmRuXQUaJLzL3afFfXmhOkjSg40=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a h1:Mbx9Lqw2C9scKrdu00/05RShXzYJe7bOczMUKaOuWT8=
 github.com/agnostic-t/neutrino-obfs v0.0.0-20260531190905-9245fb5dce7a/go.mod h1:OuxDfOHuBg4g8xPEH2efz7vQu54v0msb3cpo3aKFu28=
-github.com/agnostic-t/neutrino-transport v0.0.0-20260607213007-816cc7ecb00e h1:ti/2srEn/gFBHqHuTSvHqa8Vwc0s/ohN3o/PJeV2GxM=
-github.com/agnostic-t/neutrino-transport v0.0.0-20260607213007-816cc7ecb00e/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260609133351-66cef5ce6aff h1:c4CCKX032AYQm5sHf/2EfBCN4h6LT2VrzxMeKMM4Bus=
+github.com/agnostic-t/neutrino-transport v0.0.0-20260609133351-66cef5ce6aff/go.mod h1:8vOL/HDmTyriWXrH7FEQhcgcSSebPNWVXfCfqTVg1BQ=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
